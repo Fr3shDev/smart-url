@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -64,6 +65,42 @@ func createHandler(w http.ResponseWriter, r *http.Request) {
 	// Return the short URL as JSON.
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
+}
+
+// redirectHandler handles GET requests for short URLs.
+// It determines which destination URL to use based on the request context.
+func redirectHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract the short code from the URL path.
+	code := strings.TrimPrefix(r.URL.Path, "/")
+
+	// Look up the mapping in our in-memory store.
+	urlStore.RLock()
+	mapping, exists := urlStore.m[code]
+	urlStore.RUnlock()
+
+	if !exists {
+		http.NotFound(w, r)
+		return
+	}
+
+	// Example condition check: Detect mobile devices by inspecting the User-Agent header.
+	ua := strings.ToLower(r.UserAgent())
+	var redirectURL string
+	if strings.Contains(ua, "mobile") {
+		if url, ok := mapping.Conditions["mobile"]; ok {
+			redirectURL = url
+		}
+	}
+
+	// Additional conditions such as geolocation can be added here.
+
+	// If no condition is matched, use the default URL.
+	if redirectURL == "" {
+		redirectURL = mapping.DefaultURL
+	}
+
+	// Redirect the user to the chosen URL.
+	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
 func main() {}
