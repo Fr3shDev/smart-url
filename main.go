@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -40,7 +41,7 @@ func generateCode(n int) string {
 func createHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return 
+		return
 	}
 
 	// Decode the JSON payload into our URLMapping struct.
@@ -55,12 +56,12 @@ func createHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Store the mapping in our in-memory store.
 	urlStore.Lock()
-	urlStore.m[code] = mapping 
+	urlStore.m[code] = mapping
 	urlStore.Unlock()
 
 	// Build the short URL (assuming the service is hosted on localhost:8080).
 	shortUrl := fmt.Sprintf("http://localhost:8080/%s", code)
-	resp := map[string]string{"short_url":shortUrl}
+	resp := map[string]string{"short_url": shortUrl}
 
 	// Return the short URL as JSON.
 	w.Header().Set("Content-Type", "application/json")
@@ -103,4 +104,11 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
-func main() {}
+func main() {
+	http.HandleFunc("/create", createHandler)
+	http.HandleFunc("/", redirectHandler)
+
+	fmt.Println("SmartURL server is running on :8080")
+	// Start the HTTP server
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
