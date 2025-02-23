@@ -7,3 +7,19 @@ Visitors from a specific region (detected via their IP/geolocation) to be sent t
 
 Everyone else to be redirected to a default URL.
 This extra “smart” redirection feature is something you don’t typically see in off-the-shelf URL shorteners.
+
+# Next steps & Enhancements
+- Persistent Storage:
+Replace the in‑memory map with a database like SQLite or PostgreSQL.
+
+- More Conditions:
+Integrate an IP geolocation API (like ip-api.com) to add location-based redirection.
+
+- Analytics:
+Log requests and redirection events for later analysis (e.g., how many mobile vs. desktop hits).
+
+- Error Handling & Logging:
+Enhance error handling, logging, and add metrics for production-readiness.
+
+- Security Improvements:
+Add authentication for URL creation, rate limiting, etc.
